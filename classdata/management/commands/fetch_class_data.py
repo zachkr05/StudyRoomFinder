@@ -27,7 +27,7 @@ class Command(BaseCommand):
         base_url = "https://sisuva.admin.virginia.edu/psc/ihprd/UVSS/SA/s/WEBLIB_HCX_CM.H_CLASS_SEARCH.FieldFormula.IScript_ClassSearch"
         institution = "UVA01"
         term = "1248"
-        max_pages = 1000
+        max_pages = 2
         page = 1
         all_data = []
 
@@ -139,17 +139,38 @@ class Command(BaseCommand):
                 description=class_entry['Description']
             )
             for meeting in class_entry['Meetings']:
-                building_code = meeting.get('Building Code', 'Unknown')  # Provide a default value if building_code is None or missing
+                # Safely get 'Building Code' and provide a default value if None or missing
+                building_code = meeting.get('Building Code')
+                if building_code is None:
+                    building_code = "N/A"
+
+                # Safely get 'Room' and provide a default value if None or missing
+                room = meeting.get('Room')
+                if room is None:
+                    room = "N/A"
+
+                # Safely get 'Facility Description' and provide a default value if None or missing
+                facility_description = meeting.get('Facility Description')
+                if facility_description is None:
+                    facility_description = "No Description"
+
+                # Safely get 'Instructor' and provide a default value if None or missing
+                instructor = meeting.get('Instructor')
+                if instructor is None:
+                    instructor = "TBA"
+
+                # Create the MeetingDetail object with default values where necessary
                 MeetingDetail.objects.create(
                     class_info=class_info,
                     days=meeting['Days'],
                     start_time=meeting['Start Time'],
                     end_time=meeting['End Time'],
                     building_code=building_code,
-                    room=meeting['Room'],
-                    facility_description=meeting['Facility Description'],
-                    instructor=meeting['Instructor']
+                    room=room,
+                    facility_description=facility_description,
+                    instructor=instructor
                 )
+
         logging.debug("Finished storing data in the database.")
         sys.stdout.flush()
 
